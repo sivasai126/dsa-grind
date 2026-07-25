@@ -4,7 +4,7 @@
 
 ## Interactive Study Guide
 
-Open **[dsa-prep-guide.html](./dsa-prep-guide.html)** locally in your browser:
+Open **[dsa-prep-guide.html](https://sivasai126.github.io/dsa-grind/)** locally in your browser:
 
 - Search and filter by week, difficulty, topic
 - Expandable solutions with syntax-highlighted Java code
