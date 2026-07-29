@@ -415,6 +415,19 @@ for(int i=0;i<nums.length;i++){
   int comp=target-nums[i];
   if(seen.containsKey(comp)) return new int[]{seen.get(comp),i};
   seen.put(nums[i],i);
+}`,
+fullCode:`class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> seen = new HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            int comp = target - nums[i];
+            if (seen.containsKey(comp)) {
+                return new int[]{seen.get(comp), i};
+            }
+            seen.put(nums[i], i);
+        }
+        return new int[]{};
+    }
 }`},
 {id:2,w:1,topic:"Arrays & Hashing",name:"Group Anagrams",diff:"M",tag:"hashmap",pattern:"Sliding Window",
 signal:"'Group equivalent strings by character content' → sort → HashMap key",
@@ -428,7 +441,19 @@ for(String s:strs){
   String key=new String(arr);
   map.computeIfAbsent(key,k->new ArrayList<>()).add(s);
 }
-return new ArrayList<>(map.values());`},
+return new ArrayList<>(map.values());`,
+fullCode:`class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        Map<String, List<String>> map = new HashMap<>();
+        for (String s : strs) {
+            char[] arr = s.toCharArray();
+            Arrays.sort(arr);
+            String key = new String(arr);
+            map.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
+        }
+        return new ArrayList<>(map.values());
+    }
+}`},
 {id:3,w:1,topic:"Arrays & Hashing",name:"Top K Frequent Elements",diff:"M",tag:"hashmap+heap",pattern:"Top K Elements",
 signal:"'Top K by frequency' → PriorityQueue min-heap size K",
 oneliner:"Count with HashMap, then Min-Heap of size K: evict least frequent → O(n log k).",
@@ -444,7 +469,22 @@ for(var e:freq.entrySet()){
 }
 int[] res=new int[k];
 for(int i=0;i<k;i++) res[i]=pq.poll()[0];
-return res;`},
+return res;`,
+fullCode:`class Solution {
+    public int[] topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> freq = new HashMap<>();
+        for (int n : nums) freq.merge(n, 1, Integer::sum);
+
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[1] - b[1]);
+        for (var e : freq.entrySet()) {
+            pq.offer(new int[]{e.getKey(), e.getValue()});
+            if (pq.size() > k) pq.poll();
+        }
+        int[] res = new int[k];
+        for (int i = 0; i < k; i++) res[i] = pq.poll()[0];
+        return res;
+    }
+}`},
 {id:4,w:1,topic:"Arrays & Hashing",name:"Product of Array Except Self",diff:"M",tag:"prefix",pattern:"Prefix Sum",
 signal:"'Product except self, no division' → prefix × suffix with running variable",
 oneliner:"Forward pass fills left products; backward pass multiplies in right products via running variable.",
@@ -1513,6 +1553,49 @@ function scrollToCard(id){
 }
 
 // ═══════════════════════════════════════════════════════════
+//  JAVA CODE FORMATTER
+//  Produces properly formatted Java code for display.
+//  Priority: fullCode > snippet already has class > auto-wrap
+// ═══════════════════════════════════════════════════════════
+function formatJava(p) {
+  // 1. Use hand-written full solution if provided
+  if (p.fullCode) return p.fullCode;
+
+  let code = p.code;
+
+  // 2. Spacing normalisation (applies to all paths)
+  code = code
+    .replace(/,(?=[^\s\n>])/g, ', ')           // comma spacing
+    .replace(/;(?=[^\s\n])/g, '; ')            // semicolon spacing
+    .replace(/\b(for|if|while|switch)\(/g, '$1 (') // keyword spacing
+    .replace(/\}\s*else\s*\{/g, '} else {')   // } else {
+    .replace(/\}else\{/g, '} else {')
+    .replace(/([a-zA-Z0-9_\)])\{/g, '$1 {');  // space before {
+
+  // 3. If snippet already contains a class definition, just re-indent and return
+  if (code.includes('class ') || code.includes('public ')) {
+    const lines = code.split('\n');
+    const minInd = lines.filter(l => l.trim())
+      .reduce((m, l) => Math.min(m, l.match(/^(\s*)/)[1].length), Infinity);
+    return lines.map(l => l.trim() ? l.slice(minInd === Infinity ? 0 : minInd) : '').join('\n');
+  }
+
+  // 4. Wrap plain snippet in class+method
+  const camel = p.name
+    .toLowerCase().replace(/[^a-z0-9 ]/g, '')
+    .split(' ').map((w, i) => i ? w[0].toUpperCase() + w.slice(1) : w).join('');
+
+  const lines = code.split('\n');
+  const minInd = lines.filter(l => l.trim())
+    .reduce((m, l) => Math.min(m, l.match(/^(\s*)/)[1].length), Infinity);
+  const indented = lines
+    .map(l => l.trim() ? '        ' + l.slice(minInd === Infinity ? 0 : minInd) : '')
+    .join('\n');
+
+  return `class Solution {\n    public /* type */ ${camel}(/* params */) {\n${indented}\n    }\n}`;
+}
+
+// ═══════════════════════════════════════════════════════════
 //  CARD RENDERER
 // ═══════════════════════════════════════════════════════════
 function cardHTML(p){
@@ -1603,7 +1686,7 @@ function cardHTML(p){
       <!-- Code -->
       <div>
         <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Java Solution</h3>
-        <pre class="code-block">${escHtml(p.code)}</pre>
+        <pre class="code-block">${escHtml(formatJava(p))}</pre>
       </div>
 
       <!-- Signal + links -->
