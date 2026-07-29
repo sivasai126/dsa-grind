@@ -233,6 +233,12 @@
 <!-- ═══ MAIN CONTENT ════════════════════════════════════════ -->
 <main id="mainContent" class="flex-1 min-w-0 p-4 md:p-6 space-y-5">
 
+  <!-- Mode banner -->
+  <div id="modeBanner" class="hidden items-center gap-3 px-4 py-2.5 rounded-xl border text-sm font-medium mb-1">
+    <span id="modeBannerIcon" class="text-base"></span>
+    <span id="modeBannerText"></span>
+  </div>
+
   <!-- Dashboard stats -->
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
     <div class="bg-surface-800 rounded-xl p-4 border border-surface-600">
@@ -354,6 +360,22 @@ function setMode(m){
     if(!btn) return;
     btn.classList.toggle('active', id === m);
   });
+
+  // Update mode banner
+  const banner  = document.getElementById('modeBanner');
+  const icon    = document.getElementById('modeBannerIcon');
+  const text    = document.getElementById('modeBannerText');
+  const configs = {
+    study:    { icon:'📖', msg:'Study mode — full solutions visible. Read, understand, then mark solved.', bg:'bg-brand-600/10 border-brand-500/20 text-brand-300' },
+    practice: { icon:'⚡', msg:'Practice mode — solutions hidden. Attempt each problem first, then reveal.', bg:'bg-yellow-500/10 border-yellow-500/20 text-yellow-300' },
+    review:   { icon:'🔁', msg:'Review mode — showing only solved problems for spaced repetition.', bg:'bg-green-500/10 border-green-500/20 text-green-300' },
+  };
+  const cfg = configs[m];
+  banner.className = `flex items-center gap-3 px-4 py-2.5 rounded-xl border text-sm font-medium mb-1 ${cfg.bg}`;
+  icon.textContent = cfg.icon;
+  text.textContent = cfg.msg;
+  banner.classList.remove('hidden');
+
   render();
 }
 
@@ -2741,10 +2763,11 @@ function formatJava(p){
 }
 
 function cardHTML(p){
-  const q   = (document.getElementById('searchInput')||{}).value || '';
-  const isDone = solved[p.id];
+  const q          = (document.getElementById('searchInput')||{}).value || '';
+  const isDone     = solved[p.id];
+  const isPractice = activeMode === 'practice';
   const patternUrl = PATTERN_LINKS[p.pattern] || 'https://sivasai126.github.io/dsa-patterns/';
-  const leetUrl = `https://leetcode.com/problems/${p.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'')}/`;
+  const leetUrl    = `https://leetcode.com/problems/${p.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'')}/`;
 
   return `
 <article id="card-${p.id}" data-id="${p.id}"
@@ -2792,12 +2815,39 @@ function cardHTML(p){
   <div id="body-${p.id}" class="card-body border-t border-surface-600">
     <div class="p-5 space-y-5">
 
+      ${isPractice ? `
+      <!-- Practice mode: solve first gate -->
+      <div id="gate-${p.id}" class="text-center py-8 space-y-3">
+        <p class="text-3xl">🤔</p>
+        <p class="text-slate-300 font-medium text-sm">Try to solve this yourself first.</p>
+        <p class="text-slate-500 text-xs max-w-xs mx-auto">Open LeetCode, write your solution, then come back to compare.</p>
+        <div class="flex items-center justify-center gap-3 pt-2">
+          <a href="${leetUrl}" target="_blank" rel="noopener"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium
+                   bg-surface-700 border border-surface-600 text-slate-300
+                   hover:bg-surface-600 hover:text-white transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+            Open on LeetCode
+          </a>
+          <button onclick="revealSolution(${p.id})"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium
+                   bg-brand-600/20 border border-brand-500/30 text-brand-400
+                   hover:bg-brand-600/30 transition">
+            Reveal Solution →
+          </button>
+        </div>
+      </div>
+      <!-- Hidden solution (revealed on click) -->
+      <div id="solution-${p.id}" class="hidden space-y-5">` : ''}
+
       <!-- One-liner -->
       <div class="bg-brand-600/10 border border-brand-500/20 rounded-xl p-3 text-sm text-slate-200 leading-relaxed">
         ⚡ ${p.oneliner}
       </div>
 
-      <!-- Steps + Complexity -->
+      <!-- Steps + Insight / Mistake -->
       <div class="grid md:grid-cols-2 gap-5">
         <div>
           <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Approach</h3>
@@ -2854,6 +2904,7 @@ function cardHTML(p){
         </div>
       </div>
 
+      ${isPractice ? `</div>` : ''}
     </div>
   </div>
 </article>`;
@@ -2867,6 +2918,14 @@ function toggleCard(id){
   const chev = document.getElementById(`chev-${id}`);
   body.classList.toggle('expanded');
   chev.classList.toggle('rotated');
+}
+
+// Reveal solution in practice mode
+function revealSolution(id){
+  const gate     = document.getElementById(`gate-${id}`);
+  const solution = document.getElementById(`solution-${id}`);
+  if(gate)     gate.classList.add('hidden');
+  if(solution) solution.classList.remove('hidden');
 }
 
 // ═══════════════════════════════════════════════════════════
