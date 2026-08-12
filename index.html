@@ -30,10 +30,95 @@
     ::-webkit-scrollbar-thumb:hover { background:#4f46e5; }
 
     /* sidebar */
-    #sidebar { transition:transform .3s ease; }
+    #sidebar { transition:transform .3s ease; overflow-y: auto; }
     @media(max-width:1023px){
-      #sidebar { transform:translateX(-100%); position:fixed; z-index:40; top:0; left:0; height:100%; width:280px; }
+      #sidebar { transform:translateX(-100%); position:fixed; z-index:45; top:6.5rem; left:0; height:calc(100vh - 6.5rem); width:min(88vw, 320px); overflow-y: auto; }
       #sidebar.open { transform:translateX(0); }
+    }
+    
+    /* New: Mobile topics horizontal bar */
+    #mobileTopicsBar {
+      display: none;
+    }
+    @media(max-width:1023px){
+      #mobileTopicsBar {
+        display: block;
+        position: sticky;
+        top: 6.5rem;
+        z-index: 39;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(4px);
+        border-bottom: 1px solid #334155;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.75rem 0.75rem;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      #mobileTopicsBar::-webkit-scrollbar {
+        display: none;
+      }
+      
+      #mobileTopicsNav {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: nowrap;
+      }
+      
+      .mobile-topic-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        background: #273549;
+        color: #cbd5e1;
+        border: 1px solid #475569;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      
+      .mobile-topic-btn:hover {
+        background: #334155;
+        color: #e2e8f0;
+      }
+      
+      #filterBar {
+        top: calc(6.5rem + 3.5rem);
+        z-index: 38;
+      }
+    }
+
+    /* Phone layout: keep the controls discoverable without spending half the screen on them. */
+    @media(max-width:639px){
+      .mobile-filter-scroll { flex-wrap:nowrap; overflow-x:auto; overscroll-behavior-x:contain; scrollbar-width:none; padding-bottom:1px; }
+      .mobile-filter-scroll::-webkit-scrollbar { display:none; }
+      .mobile-filter-group { flex:none; }
+      .mobile-filter-divider { display:none; }
+      .filter-pill { min-height:30px; }
+      .stat-card { min-height:76px; }
+      .stat-card p:last-child { font-size:1.35rem; line-height:1.4; }
+    }
+    @media(max-width:374px){ .progress-count { display:none; } }
+
+    /* Mobile topics bar */
+    .scrollbar-hide { scrollbar-width:none; -ms-overflow-style:none; }
+    .scrollbar-hide::-webkit-scrollbar { display:none; }
+    #mobileTopicsNav { flex-wrap:nowrap; }
+    #mobileTopicsNav .mobile-topic { flex-shrink:0; white-space:nowrap; }
+
+    /* Adjust filter bar when mobile topics bar is shown */
+    @media(min-width:1024px){
+      #mobileTopicsBar { display:none !important; }
+      #filterBar { top:6.5rem; }
+    }
+
+    /* Desktop: the study list is a scanning surface, so avoid tall cards and a page-length sidebar. */
+    @media(min-width:1024px){
+      #sidebar { position:sticky; top:6.5rem; height:calc(100vh - 6.5rem); }
+      .desktop-card-header { min-height:84px; }
+      .desktop-card-meta { margin-top:0; }
     }
 
     /* card body */
@@ -101,9 +186,9 @@
 
 <!-- ═══ TOP NAV ═══════════════════════════════════════════════ -->
 <header class="sticky top-0 z-50 bg-surface-900/90 backdrop-blur border-b border-surface-600">
-  <div class="max-w-screen-2xl mx-auto px-4 h-14 flex items-center gap-4">
+  <div class="max-w-screen-2xl mx-auto px-3 sm:px-4 py-2 sm:py-0 h-auto sm:h-14 flex flex-wrap sm:flex-nowrap items-center gap-x-2 gap-y-2 sm:gap-4">
 
-    <button onclick="toggleSidebar()" aria-label="Toggle sidebar"
+    <button id="sidebarToggle" onclick="toggleSidebar()" aria-label="Open topic navigation" aria-expanded="false" aria-controls="sidebar"
       class="lg:hidden p-2 rounded-lg hover:bg-surface-700 text-slate-400 hover:text-white transition">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -112,6 +197,7 @@
 
     <!-- Logo / product switcher -->
     <div class="flex items-center gap-3 mr-2">
+      <span class="sm:hidden font-bold text-white text-sm tracking-tight">DSA<span class="text-brand-400">Prep</span></span>
       <span class="font-bold text-white hidden sm:block">DSA<span class="text-brand-400">Prep</span></span>
       <span class="hidden sm:block text-slate-600 text-xs">by Siva Sai Krishna</span>
       <!-- cross-link to DSA Patterns -->
@@ -125,12 +211,17 @@
       </a>
     </div>
 
+    <button id="mobileModeButton" onclick="cycleMode()" aria-label="Switch study mode" title="Tap to switch mode"
+      class="sm:hidden px-2.5 py-1.5 rounded-lg bg-brand-600/20 border border-brand-500/30 text-brand-300 text-xs font-semibold whitespace-nowrap">
+      📖 Study
+    </button>
+
     <!-- Search -->
-    <div class="flex-1 max-w-lg relative">
+    <div class="order-3 basis-full flex-none sm:order-none sm:basis-auto sm:flex-1 max-w-lg relative min-w-0">
       <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
       </svg>
-      <input id="searchInput" type="search" placeholder="Search problems, patterns, tags…" aria-label="Search"
+      <input id="searchInput" type="search" placeholder="Search problems…" aria-label="Search problems, patterns, and tags"
         oninput="applyFilters()"
         class="w-full bg-surface-800 border border-surface-600 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-200
                placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition" />
@@ -143,7 +234,7 @@
       <button onclick="setMode('review')"  id="mode-review"  class="mode-tab px-3 py-1.5 rounded-lg text-xs font-medium">🔁 Review</button>
     </div>
 
-    <div class="ml-auto flex items-center gap-3">
+    <div class="ml-auto flex items-center gap-2 sm:gap-3">
       <!-- Analytics toggle -->
       <button onclick="toggleAnalytics()" aria-label="Toggle analytics"
         class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-700 hover:bg-surface-600 text-slate-300 text-xs font-medium transition">
@@ -153,24 +244,29 @@
         Analytics
       </button>
       <!-- Progress ring -->
-      <div class="flex items-center gap-2 text-xs text-slate-400">
+      <div class="flex items-center gap-1.5 sm:gap-2 text-xs text-slate-400" aria-label="Progress">
         <svg viewBox="0 0 36 36" class="w-8 h-8">
           <circle cx="18" cy="18" r="15" fill="none" stroke-width="3" class="ring-bg"/>
           <circle id="progressRing" cx="18" cy="18" r="15" fill="none" stroke-width="3"
             class="ring-bar" stroke-dasharray="94.25" stroke-dashoffset="94.25"/>
         </svg>
-        <span id="progressLabel" class="font-medium text-white">0/74</span>
+        <span id="progressLabel" class="progress-count font-medium text-white">0/74</span>
       </div>
     </div>
   </div>
 </header>
 
+<!-- ═══ MOBILE TOPICS BAR (only on small screens) ════════════════════════ -->
+<div id="mobileTopicsBar">
+  <nav id="mobileTopicsNav" class="flex gap-2"></nav>
+</div>
+
 <!-- ═══ FILTER BAR ════════════════════════════════════════════ -->
-<div class="sticky top-14 z-40 bg-surface-900/95 backdrop-blur border-b border-surface-600">
-  <div class="max-w-screen-2xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+<div id="filterBar" class="sticky top-14 z-20 bg-surface-900/95 backdrop-blur border-b border-surface-600">
+  <div class="max-w-screen-2xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 mobile-filter-scroll">
 
     <!-- Week -->
-    <div class="flex items-center gap-1.5">
+    <div class="flex items-center gap-1.5 mobile-filter-group">
       <span class="text-slate-500 text-xs font-medium uppercase tracking-wider mr-1">Week</span>
       <button onclick="setFilter('week','All',this)"  id="fw-All" class="filter-pill active-pill">All</button>
       <button onclick="setFilter('week','1',this)"    id="fw-1"   class="filter-pill">W1</button>
@@ -179,10 +275,10 @@
       <button onclick="setFilter('week','4',this)"    id="fw-4"   class="filter-pill">W4</button>
     </div>
 
-    <div class="w-px h-4 bg-surface-600 hidden sm:block"></div>
+    <div class="w-px h-4 bg-surface-600 hidden sm:block mobile-filter-divider"></div>
 
     <!-- Difficulty -->
-    <div class="flex items-center gap-1.5">
+    <div class="flex items-center gap-1.5 mobile-filter-group">
       <span class="text-slate-500 text-xs font-medium uppercase tracking-wider mr-1">Diff</span>
       <button onclick="setFilter('diff','All',this)" id="fd-All" class="filter-pill active-pill">All</button>
       <button onclick="setFilter('diff','E',this)"   id="fd-E"   class="filter-pill text-green-400">Easy</button>
@@ -190,10 +286,10 @@
       <button onclick="setFilter('diff','H',this)"   id="fd-H"   class="filter-pill text-red-400">Hard</button>
     </div>
 
-    <div class="w-px h-4 bg-surface-600 hidden sm:block"></div>
+    <div class="w-px h-4 bg-surface-600 hidden sm:block mobile-filter-divider"></div>
 
     <!-- Status -->
-    <div class="flex items-center gap-1.5">
+    <div class="flex items-center gap-1.5 mobile-filter-group">
       <span class="text-slate-500 text-xs font-medium uppercase tracking-wider mr-1">Status</span>
       <button onclick="setFilter('status','all',this)"      id="fs-all"      class="filter-pill active-pill">All</button>
       <button onclick="setFilter('status','unsolved',this)" id="fs-unsolved" class="filter-pill">Unsolved</button>
@@ -218,7 +314,7 @@
   <div class="p-3">
     <!-- Cross-link -->
     <a href="https://sivasai126.github.io/dsa-patterns/" target="_blank" rel="noopener"
-      class="flex items-center gap-2 w-full px-3 py-2 mb-3 rounded-lg bg-brand-600/20 border border-brand-500/30
+      class="flex lg:hidden items-center gap-2 w-full px-3 py-2 mb-3 rounded-lg bg-brand-600/20 border border-brand-500/30
              text-brand-400 text-xs font-medium hover:bg-brand-600/30 transition">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -231,7 +327,7 @@
 </aside>
 
 <!-- ═══ MAIN CONTENT ════════════════════════════════════════ -->
-<main id="mainContent" class="flex-1 min-w-0 p-4 md:p-6 space-y-5">
+<main id="mainContent" class="flex-1 min-w-0 p-3 sm:p-4 md:p-6 lg:px-10 xl:px-12 space-y-4 sm:space-y-5">
 
   <!-- Mode banner -->
   <div id="modeBanner" class="hidden items-center gap-3 px-4 py-2.5 rounded-xl border text-sm font-medium mb-1">
@@ -240,20 +336,20 @@
   </div>
 
   <!-- Dashboard stats -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-    <div class="bg-surface-800 rounded-xl p-4 border border-surface-600">
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+    <div class="stat-card hidden sm:block bg-surface-800 rounded-xl p-3 sm:p-4 border border-surface-600">
       <p class="text-xs text-slate-500 uppercase tracking-wide">Total</p>
       <p class="text-2xl font-bold text-white mt-1" id="statTotal">74</p>
     </div>
-    <div class="bg-surface-800 rounded-xl p-4 border border-surface-600">
+    <div class="stat-card bg-surface-800 rounded-xl p-3 sm:p-4 border border-surface-600">
       <p class="text-xs text-slate-500 uppercase tracking-wide">Solved</p>
       <p class="text-2xl font-bold text-brand-400 mt-1" id="statSolved">0</p>
     </div>
-    <div class="bg-surface-800 rounded-xl p-4 border border-surface-600">
+    <div class="stat-card hidden sm:block bg-surface-800 rounded-xl p-3 sm:p-4 border border-surface-600">
       <p class="text-xs text-slate-500 uppercase tracking-wide">Remaining</p>
       <p class="text-2xl font-bold text-white mt-1" id="statRemaining">74</p>
     </div>
-    <div class="bg-surface-800 rounded-xl p-4 border border-surface-600">
+    <div class="stat-card bg-surface-800 rounded-xl p-3 sm:p-4 border border-surface-600">
       <p class="text-xs text-slate-500 uppercase tracking-wide">Completion</p>
       <p class="text-2xl font-bold text-white mt-1" id="statPct">0%</p>
     </div>
@@ -277,6 +373,7 @@
     </svg>
     <p class="text-lg font-medium">No problems match your filters</p>
     <p class="text-sm mt-1">Try a different search or clear the filters</p>
+    <button onclick="clearFilters()" class="mt-4 px-3 py-2 rounded-lg border border-brand-500/40 text-brand-400 text-sm hover:bg-brand-600/10 transition">Clear filters</button>
   </div>
 
   <!-- Problem cards rendered here -->
@@ -353,6 +450,17 @@ function setFilter(type, val, el){
   render();
 }
 
+function clearFilters(){
+  activeWeek = 'All';
+  activeDiff = 'All';
+  activeStatus = 'all';
+  const search = document.getElementById('searchInput');
+  if(search) search.value = '';
+  document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active-pill'));
+  ['fw-All', 'fd-All', 'fs-all'].forEach(id => document.getElementById(id)?.classList.add('active-pill'));
+  render();
+}
+
 function setMode(m){
   activeMode = m;
   ['study','practice','review'].forEach(id => {
@@ -371,12 +479,19 @@ function setMode(m){
     review:   { icon:'🔁', msg:'Review mode — showing only solved problems for spaced repetition.', bg:'bg-green-500/10 border-green-500/20 text-green-300' },
   };
   const cfg = configs[m];
+  const mobileModeButton = document.getElementById('mobileModeButton');
+  if(mobileModeButton) mobileModeButton.textContent = `${cfg.icon} ${m[0].toUpperCase() + m.slice(1)}`;
   banner.className = `flex items-center gap-3 px-4 py-2.5 rounded-xl border text-sm font-medium mb-1 ${cfg.bg}`;
   icon.textContent = cfg.icon;
   text.textContent = cfg.msg;
   banner.classList.remove('hidden');
 
   render();
+}
+
+function cycleMode(){
+  const modes = ['study', 'practice', 'review'];
+  setMode(modes[(modes.indexOf(activeMode) + 1) % modes.length]);
 }
 
 function applyFilters(){ render(); }
@@ -407,14 +522,21 @@ function getFiltered(){
 function toggleSidebar(){
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
+  const toggle = document.getElementById('sidebarToggle');
   const isOpen = sidebar.classList.toggle('open');
   // show overlay when sidebar is open (on small screens), hide when closed
   if(isOpen) overlay.classList.remove('hidden');
   else overlay.classList.add('hidden');
+  if(toggle){
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    toggle.setAttribute('aria-label', isOpen ? 'Close topic navigation' : 'Open topic navigation');
+  }
 }
 function closeSidebar(){
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('overlay').classList.add('hidden');
+  const toggle = document.getElementById('sidebarToggle');
+  if(toggle){ toggle.setAttribute('aria-expanded', 'false'); toggle.setAttribute('aria-label', 'Open topic navigation'); }
 }
 function toggleAnalytics(){
   document.getElementById('analyticsPanel').classList.toggle('hidden');
@@ -431,6 +553,8 @@ function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 // ═══════════════════════════════════════════════════════════
 const P = [
 {id:1,w:1,topic:"Arrays & Hashing",name:"Two Sum",diff:"E",tag:"hashmap",pattern:"Prefix Sum",
+timeComplexity:"O(n)",spaceComplexity:"O(n)",
+problemDesc:"Given an array of integers and a target, find two distinct indices where nums[i] + nums[j] = target. Return their indices.",
 signal:"'Find pair with sum X' → HashMap<Value,Index>",
 oneliner:"HashMap stores complement→index. One pass: check if (target−num) was seen, else store current.",
 steps:["Create HashMap<Integer,Integer> seen","For each i: comp = target − nums[i]","If seen.containsKey(comp) → return {seen.get(comp), i}","Else: seen.put(nums[i], i)"],
@@ -456,6 +580,8 @@ fullCode:`class Solution {
     }
 }`},
 {id:2,w:1,topic:"Arrays & Hashing",name:"Group Anagrams",diff:"M",tag:"hashmap",pattern:"Sliding Window",
+timeComplexity:"O(n*k log k)",spaceComplexity:"O(n*k)",
+problemDesc:"Given an array of strings, group all anagrams together. Anagrams are words with the same characters in different order.",
 signal:"'Group equivalent strings by character content' → sort → HashMap key",
 oneliner:"Sort each word → use sorted string as HashMap key. All anagrams share the same sorted form.",
 steps:["Create HashMap<String,List<String>> map","For each word: sort chars → key","map.computeIfAbsent(key, k->new ArrayList<>()).add(word)","Return new ArrayList<>(map.values())"],
@@ -481,6 +607,8 @@ fullCode:`class Solution {
     }
 }`},
 {id:3,w:1,topic:"Arrays & Hashing",name:"Top K Frequent Elements",diff:"M",tag:"hashmap+heap",pattern:"Top K Elements",
+timeComplexity:"O(n log k)",spaceComplexity:"O(n)",
+problemDesc:"Given an integer array and integer k, return the k most frequent elements. You may assume k is always valid.",
 signal:"'Top K by frequency' → PriorityQueue min-heap size K",
 oneliner:"Count with HashMap, then Min-Heap of size K: evict least frequent → O(n log k).",
 steps:["Count frequencies with HashMap","Min-heap sorted by frequency ascending","For each entry: offer. If size>k: poll","Extract remaining elements"],
@@ -512,6 +640,8 @@ fullCode:`class Solution {
     }
 }`},
 {id:4,w:1,topic:"Arrays & Hashing",name:"Product of Array Except Self",diff:"M",tag:"prefix",pattern:"Prefix Sum",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Given array nums, return array where each element is the product of all elements except itself. Do not use division.",
 signal:"'Product except self, no division' → prefix × suffix with running variable",
 oneliner:"Forward pass fills left products; backward pass multiplies in right products via running variable.",
 steps:["result[0]=1; forward: result[i]=result[i-1]*nums[i-1]","right=1; backward: result[i]*=right; right*=nums[i]","Return result"],
@@ -523,6 +653,8 @@ int right=1;
 for(int i=n-1;i>=0;i--){ result[i]*=right; right*=nums[i]; }
 return result;`},
 {id:5,w:1,topic:"Arrays & Hashing",name:"Longest Consecutive Sequence",diff:"M",tag:"hashset",pattern:"Sliding Window",
+timeComplexity:"O(n)",spaceComplexity:"O(n)",
+problemDesc:"Given an unsorted array of integers, find the length of the longest consecutive sequence in O(n) time without sorting.",
 signal:"'Longest consecutive run O(n)' → HashSet + start-of-sequence guard",
 oneliner:"HashSet + only count from sequence roots (n−1 not in set) → O(n) without sorting.",
 steps:["Add all nums to HashSet","For each n: if n−1 not in set → sequence start","count++ while set.contains(n+count)","best=Math.max(best,count)"],
@@ -540,6 +672,8 @@ for(int n:set){
 }
 return best;`},
 {id:6,w:1,topic:"Arrays & Hashing",name:"Valid Anagram",diff:"E",tag:"freq-array",pattern:"Sliding Window",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Given two strings s and t, return true if t is an anagram of s. Anagrams have the same characters in different order.",
 signal:"'Are two strings anagrams?' → int[26] freq array O(n) time O(1) space",
 oneliner:"int[26] frequency: +1 for s, −1 for t. Any count ≠ 0 → not anagrams.",
 steps:["if s.length()!=t.length() return false","int[26] count","s: count[c-'a']++; t: count[c-'a']--","Return all entries == 0"],
@@ -552,6 +686,8 @@ for(char c:t.toCharArray()) count[c-'a']--;
 for(int x:count) if(x!=0) return false;
 return true;`},
 {id:7,w:1,topic:"Two Pointers",name:"Valid Palindrome",diff:"E",tag:"two-ptr",pattern:"Two Pointers",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Given a string s, determine if it is a palindrome, considering only alphanumeric characters and ignoring case.",
 signal:"'Is string palindrome, skip non-alpha' → two pointers converging inward",
 oneliner:"Two pointers from both ends; skip non-alphanumeric; compare case-insensitively.",
 steps:["l=0, r=s.length()-1","While l<r: skip non-alphanumeric (guard l<r)","If chars differ → return false","l++, r--; return true"],
@@ -566,6 +702,8 @@ while(l<r){
 }
 return true;`},
 {id:8,w:1,topic:"Two Pointers",name:"3Sum",diff:"M",tag:"two-ptr",pattern:"Two Pointers",
+timeComplexity:"O(n²)",spaceComplexity:"O(1)",
+problemDesc:"Given integer array nums, return all unique triplets that sum to zero. No duplicate triplets in result.",
 signal:"'Triplets/k-sum no duplicates sorted' → sort + fix one + two-pointer on rest",
 oneliner:"Sort → fix nums[i] → two-pointer for pair summing to −nums[i]. Skip duplicates.",
 steps:["Sort array","For i: skip if nums[i]==nums[i-1]","lo=i+1,hi=n-1; while lo<hi: check sum","sum==0→add+skip dups. <0→lo++. >0→hi--"],
@@ -588,6 +726,8 @@ for(int i=0;i<nums.length-2;i++){
 }
 return res;`},
 {id:9,w:1,topic:"Two Pointers",name:"Container With Most Water",diff:"M",tag:"two-ptr",pattern:"Two Pointers",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Given array height, find two lines that form a container with maximum area. Area = width × min(height[left], height[right]).",
 signal:"'Two walls max water' → two pointers, always move shorter",
 oneliner:"Start widest pair; always move shorter wall inward — area can only improve.",
 steps:["l=0,r=n-1,best=0","area=min(h[l],h[r])*(r-l); best=max(best,area)","if h[l]<h[r]: l++ else r--","Return best"],
@@ -600,6 +740,8 @@ while(l<r){
 }
 return best;`},
 {id:10,w:1,topic:"Two Pointers",name:"Trapping Rain Water",diff:"H",tag:"two-ptr",pattern:"Two Pointers",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Given elevation map (array height), compute how much rainwater can be trapped after it rains.",
 signal:"'Trapped water between bars' → two pointers with running max from each side",
 oneliner:"Water at i = min(maxLeft,maxRight)−height[i]. Track both maxes with two pointers.",
 steps:["l=0,r=n-1,maxL=0,maxR=0,total=0","If h[l]<=h[r]: maxL=max(maxL,h[l]); total+=maxL-h[l]; l++","Else: maxR=max(maxR,h[r]); total+=maxR-h[r]; r--","Return total"],
@@ -616,6 +758,8 @@ while(l<r){
 return total;`},
 
 {id:11,w:1,topic:"Sliding Window",name:"Best Time to Buy & Sell Stock",diff:"E",tag:"sliding-window",pattern:"Sliding Window",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Given array prices where prices[i] is stock price on day i, find max profit from buying and selling once. Must buy before sell.",
 signal:"'Max profit one transaction' → track running min, update max profit",
 oneliner:"Track running minPrice. For each price: profit=price−minPrice; update best.",
 steps:["minPrice=INT_MAX, maxProfit=0","For each price: minPrice=min(minPrice,price)","maxProfit=max(maxProfit,price-minPrice)","Return maxProfit"],
@@ -625,6 +769,8 @@ code:`int min=Integer.MAX_VALUE,max=0;
 for(int p:prices){ min=Math.min(min,p); max=Math.max(max,p-min); }
 return max;`},
 {id:12,w:1,topic:"Sliding Window",name:"Longest Substring Without Repeating",diff:"M",tag:"sliding-window",pattern:"Sliding Window",
+timeComplexity:"O(n)",spaceComplexity:"O(min(n, m))",
+problemDesc:"Given string s, find length of longest substring without repeating characters.",
 signal:"'Longest substring with constraint' → variable sliding window + HashMap",
 oneliner:"Expand right; when duplicate found, shrink left past the previous occurrence.",
 steps:["Map<Char,Index> seen; left=0,best=0","For each right: if seen has s[right] and seen[s[right]]>=left: left=seen[s[right]]+1","seen.put(s[right],right); best=max(best,right-left+1)","Return best"],
@@ -640,6 +786,8 @@ for(int r=0;r<s.length();r++){
 }
 return best;`},
 {id:13,w:1,topic:"Sliding Window",name:"Longest Repeating Character Replacement",diff:"M",tag:"sliding-window",pattern:"Sliding Window",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Given string s and int k, find longest substring where you can change at most k characters to make all same.",
 signal:"'Longest substring replacing at most k chars' → window size − maxFreq <= k",
 oneliner:"Window is valid if (size − maxFreq) ≤ k. Expand right; shrink left when invalid.",
 steps:["int[26] freq; maxFreq=0,left=0,best=0","For each right: freq[c]++; maxFreq=max(maxFreq,freq[c])","If (right-left+1)-maxFreq>k: freq[s[left]-'A']--; left++","best=max(best,right-left+1)"],
@@ -653,6 +801,8 @@ for(int r=0;r<s.length();r++){
 }
 return best;`},
 {id:14,w:1,topic:"Sliding Window",name:"Permutation in String",diff:"M",tag:"sliding-window",pattern:"Sliding Window",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Given strings s1 and s2, return true if s2 contains a permutation of s1 as a substring.",
 signal:"'Does s2 contain permutation of s1?' → fixed window + freq array comparison",
 oneliner:"Fixed window of size s1.length() on s2; compare int[26] freq arrays.",
 steps:["int[26] need (s1 freqs), int[26] have (window freqs)","Slide window of size k=s1.length() over s2","On expand: have[c]++. On shrink: have[c]--","If Arrays.equals(need,have): return true"],
@@ -668,6 +818,8 @@ for(int r=0;r<n;r++){
 }
 return false;`},
 {id:15,w:1,topic:"Sliding Window",name:"Minimum Window Substring",diff:"H",tag:"sliding-window",pattern:"Sliding Window",
+timeComplexity:"O(n + m)",spaceComplexity:"O(m)",
+problemDesc:"Given strings s and t, find the minimum window substring of s containing all chars of t. If none, return empty string.",
 signal:"'Smallest window containing all chars of t' → variable window + have/need counters",
 oneliner:"Expand right until window has all chars; shrink left while still valid; record minimum.",
 steps:["Map<Char,Int> need (t freqs); have=0,need_count=t unique chars","Expand: if freq matches → have++","If have==need_count: record window, shrink left","Return best window or ''"],
@@ -687,6 +839,8 @@ for(int r=0;r<s.length();r++){
 }
 return minLen==Integer.MAX_VALUE?"":s.substring(start,start+minLen);`},
 {id:16,w:1,topic:"Binary Search",name:"Binary Search",diff:"E",tag:"binary-search",pattern:"Modified Binary Search",
+timeComplexity:"O(log n)",spaceComplexity:"O(1)",
+problemDesc:"Given sorted array nums and target, return index if found, else return -1. Assume no duplicates.",
 signal:"'Search sorted array' → lo+(hi-lo)/2 to avoid overflow",
 oneliner:"Classic binary search: lo=0,hi=n-1. While lo<=hi: check mid, halve space.",
 steps:["lo=0,hi=n-1","mid=lo+(hi-lo)/2","If nums[mid]==target: return mid","If <target: lo=mid+1. Else hi=mid-1"],
@@ -701,6 +855,8 @@ while(lo<=hi){
 }
 return -1;`},
 {id:17,w:1,topic:"Binary Search",name:"Search in Rotated Sorted Array",diff:"M",tag:"binary-search",pattern:"Modified Binary Search",
+timeComplexity:"O(log n)",spaceComplexity:"O(1)",
+problemDesc:"Search for target in a rotated sorted array. Array rotated at unknown pivot. No duplicates.",
 signal:"'Search rotated sorted array' → determine which half is sorted, check if target in that half",
 oneliner:"At mid, one half is always sorted. Check if target is in the sorted half; adjust lo/hi.",
 steps:["lo=0,hi=n-1","mid=lo+(hi-lo)/2","Determine sorted half: if nums[lo]<=nums[mid] → left is sorted","Check if target in sorted half; adjust lo or hi accordingly"],
@@ -718,6 +874,8 @@ while(lo<=hi){
 }
 return -1;`},
 {id:18,w:1,topic:"Binary Search",name:"Koko Eating Bananas",diff:"M",tag:"binary-search",pattern:"Modified Binary Search",
+timeComplexity:"O(n log max(piles))",spaceComplexity:"O(1)",
+problemDesc:"Koko eats bananas from piles. Each hour she picks a pile and eats k bananas. Find min k to finish within h hours.",
 signal:"'Minimum speed/capacity satisfying constraint' → binary search on answer space",
 oneliner:"Binary search on speed k∈[1,max(piles)]. Feasibility: can finish in h hours?",
 steps:["lo=1,hi=max(piles)","While lo<hi: mid=(lo+hi)/2","If hours(mid)<=h: hi=mid (valid, try smaller)","Else lo=mid+1"],
@@ -731,6 +889,8 @@ while(lo<hi){
 }
 return lo;`},
 {id:19,w:1,topic:"Binary Search",name:"Find Minimum in Rotated Sorted Array",diff:"M",tag:"binary-search",pattern:"Modified Binary Search",
+timeComplexity:"O(log n)",spaceComplexity:"O(1)",
+problemDesc:"Find minimum in rotated sorted array. No duplicates. Original sorted array rotated at unknown pivot.",
 signal:"'Min in rotated sorted array' → compare mid with hi to find inflection",
 oneliner:"If nums[mid]>nums[hi] the min is in right half; else in left half (including mid).",
 steps:["lo=0,hi=n-1","mid=lo+(hi-lo)/2","If nums[mid]>nums[hi]: lo=mid+1","Else: hi=mid (mid could be the answer)"],
@@ -743,6 +903,8 @@ while(lo<hi){
 }
 return nums[lo];`},
 {id:20,w:1,topic:"Binary Search",name:"Time Based Key Value Store",diff:"M",tag:"binary-search",pattern:"Modified Binary Search",
+timeComplexity:"O(log n) per get",spaceComplexity:"O(n)",
+problemDesc:"Design a time-based key-value store. set(key,value,timestamp). get(key,timestamp) returns value at or before timestamp.",
 signal:"'Get value at or before timestamp' → binary search on sorted timestamp list",
 oneliner:"HashMap<key,List<[timestamp,value]>>. get() binary-searches for largest timestamp ≤ t.",
 steps:["Map<String,List<int[],String>> store","set: append [timestamp,value]","get: binary search for largest ts<=timestamp","Return value or ''"],
@@ -762,6 +924,8 @@ public String get(String k,int t){
   return idx==-1?"":vals.get(k).get(idx);
 }`},
 {id:21,w:1,topic:"Stack",name:"Valid Parentheses",diff:"E",tag:"stack",pattern:"Monotonic Stack",
+timeComplexity:"O(n)",spaceComplexity:"O(n)",
+problemDesc:"Given string s with brackets, determine if brackets are valid. Every open must have matching close in correct order.",
 signal:"'Matching brackets' → stack push open, pop+compare on close",
 oneliner:"Push open brackets. On close: pop and verify it matches. Stack empty at end → valid.",
 steps:["Deque<Char> stack","For each c: if open bracket → push paired close bracket","If close bracket: if stack empty or stack.pop()!=c → false","Return stack.isEmpty()"],
@@ -776,6 +940,8 @@ for(char c:s.toCharArray()){
 }
 return stack.isEmpty();`},
 {id:22,w:1,topic:"Stack",name:"Min Stack",diff:"M",tag:"stack",pattern:"Design Data Structure",
+timeComplexity:"O(1)",spaceComplexity:"O(n)",
+problemDesc:"Design stack supporting push, pop, top, and getMin in O(1) time. All operations must be constant time.",
 signal:"'Stack with O(1) getMin' → second stack tracking minimums",
 oneliner:"Two stacks: main + minStack. Push to minStack when new val ≤ current min.",
 steps:["Deque<Int> stack, minStack","push: stack.push(val); if val<=minStack.peek(): minStack.push(val)","pop: if stack.peek()==minStack.peek(): minStack.pop(); stack.pop()","getMin: return minStack.peek()"],
@@ -791,6 +957,8 @@ public void pop(){
 }
 public int getMin(){ return min.peek(); }`},
 {id:23,w:1,topic:"Stack",name:"Evaluate Reverse Polish Notation",diff:"M",tag:"stack",pattern:"Monotonic Stack",
+timeComplexity:"O(n)",spaceComplexity:"O(n)",
+problemDesc:"Given array of strings representing RPN expression, evaluate and return result. Operands are numbers, tokens are +−*/.",
 signal:"'Evaluate RPN expression' → stack: push numbers, pop two on operator",
 oneliner:"Stack of integers. Push numbers; on operator pop two, apply, push result.",
 steps:["Deque<Int> stack","For each token: if number → push","If operator: b=pop(), a=pop(); push(a op b)","Return stack.pop()"],
@@ -805,6 +973,8 @@ for(String t:tokens){
 }
 return st.pop();`},
 {id:24,w:1,topic:"Stack",name:"Daily Temperatures",diff:"M",tag:"mono-stack",pattern:"Monotonic Stack",
+timeComplexity:"O(n)",spaceComplexity:"O(n)",
+problemDesc:"Given array temperatures, for each day return days until warmer temperature. If none, return 0.",
 signal:"'Next warmer day for each index' → monotonic decreasing stack of indices",
 oneliner:"Monotonic decreasing stack of indices. When temp[i] > temp[stack.top], resolve.",
 steps:["Deque<Int> stack (indices); int[] res","For each i: while stack non-empty and temp[i]>temp[stack.peek()]: resolve","res[stack.pop()]=i-stack.pop(); push i","Return res"],
@@ -820,6 +990,8 @@ for(int i=0;i<temperatures.length;i++){
 // correct:
 // res[idx]=i-idx; stack.pop();`},
 {id:25,w:1,topic:"Stack",name:"Car Fleet",diff:"M",tag:"mono-stack",pattern:"Monotonic Stack",
+timeComplexity:"O(n log n)",spaceComplexity:"O(n)",
+problemDesc:"Cars traveling to target. Car i at position[i] with speed[i]. Fleet forms when faster car catches slower. Count fleets.",
 signal:"'Cars reaching destination in fleets' → sort by position desc, stack arrival times",
 oneliner:"Sort desc by position. Compute arrival time. If time >= stack top, same fleet (pop). Else new fleet (push).",
 steps:["Sort by position descending","For each car: time=(target-pos)/speed","If stack empty or time>stack.peek(): push (new fleet)","Return stack.size()"],
@@ -837,6 +1009,8 @@ for(int[] c:cars){
 return stack.size();`},
 
 {id:26,w:2,topic:"Linked Lists",name:"Reverse Linked List",diff:"E",tag:"linked-list",pattern:"Fast & Slow Pointer",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Reverse a singly linked list iteratively. Return new head.",
 signal:"'Reverse linked list' → prev/curr/next pointer dance",
 oneliner:"Three-pointer iterative: prev=null, curr=head. Rewire curr.next=prev each step.",
 steps:["prev=null,curr=head","nxt=curr.next; curr.next=prev; prev=curr; curr=nxt","Return prev"],
@@ -846,6 +1020,8 @@ code:`ListNode prev=null,curr=head;
 while(curr!=null){ ListNode nxt=curr.next; curr.next=prev; prev=curr; curr=nxt; }
 return prev;`},
 {id:27,w:2,topic:"Linked Lists",name:"Merge Two Sorted Lists",diff:"E",tag:"linked-list",pattern:"Fast & Slow Pointer",
+timeComplexity:"O(n + m)",spaceComplexity:"O(1)",
+problemDesc:"Merge two sorted linked lists into one sorted list. Reuse existing nodes.",
 signal:"'Merge two sorted lists' → dummy head + compare and advance",
 oneliner:"Dummy head. Compare l1 and l2 heads; attach smaller; advance that pointer.",
 steps:["dummy=new ListNode(0); curr=dummy","While l1&&l2: attach smaller; advance","Attach remaining list","Return dummy.next"],
@@ -860,6 +1036,8 @@ while(l1!=null&&l2!=null){
 curr.next=l1!=null?l1:l2;
 return dummy.next;`},
 {id:28,w:2,topic:"Linked Lists",name:"Linked List Cycle",diff:"E",tag:"fast-slow",pattern:"Fast & Slow Pointer",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Given linked list, determine if there is a cycle. Cycle exists if a node can be reached again.",
 signal:"'Detect cycle in linked list' → fast/slow pointers",
 oneliner:"Slow +1, fast +2. If they meet → cycle. If fast reaches null → no cycle.",
 steps:["slow=head,fast=head","While fast&&fast.next: slow=slow.next; fast=fast.next.next","If slow==fast: return true","Return false"],
@@ -872,6 +1050,8 @@ while(fast!=null&&fast.next!=null){
 }
 return false;`},
 {id:29,w:2,topic:"Linked Lists",name:"Reorder List",diff:"M",tag:"linked-list",pattern:"Fast & Slow Pointer",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Reorder list L0→Ln→L1→Ln-1→L2→Ln-2. Modify list in place.",
 signal:"'Reorder list L0→Ln→L1→Ln-1' → find mid + reverse second half + merge",
 oneliner:"Find middle (slow/fast), reverse second half, merge two halves alternately.",
 steps:["Find middle with slow/fast","Reverse second half in place","Merge: first.next=second; advance both pointers"],
@@ -887,6 +1067,8 @@ while(second!=null){ ListNode tmp=second.next; second.next=prev; prev=second; se
 ListNode first=head; second=prev;
 while(second!=null){ ListNode t1=first.next,t2=second.next; first.next=second; second.next=t1; first=t1; second=t2; }`},
 {id:30,w:2,topic:"Linked Lists",name:"Remove Nth Node From End",diff:"M",tag:"linked-list",pattern:"Fast & Slow Pointer",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Remove nth node from end of list. List has at least n nodes. Return head.",
 signal:"'Remove nth from end' → two pointers n apart",
 oneliner:"Advance fast n+1 steps. Move both until fast==null. Remove slow.next.",
 steps:["dummy before head; fast=slow=dummy","Advance fast n+1 steps","Move both until fast==null","slow.next=slow.next.next"],
@@ -899,6 +1081,8 @@ while(fast!=null){ fast=fast.next; slow=slow.next; }
 slow.next=slow.next.next;
 return dummy.next;`},
 {id:31,w:2,topic:"Binary Trees",name:"Invert Binary Tree",diff:"E",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(h)",
+problemDesc:"Invert a binary tree: swap every left/right child pair at each node.",
 signal:"'Invert binary tree' → swap children at every node, DFS",
 oneliner:"Recursively swap left and right children at every node.",
 steps:["Base: if null return null","Swap: temp=root.left; root.left=root.right; root.right=temp","Recurse invertTree(root.left); invertTree(root.right)","Return root"],
@@ -909,6 +1093,8 @@ ListNode tmp=root.left; root.left=root.right; root.right=tmp;
 invertTree(root.left); invertTree(root.right);
 return root;`},
 {id:32,w:2,topic:"Binary Trees",name:"Maximum Depth of Binary Tree",diff:"E",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(h)",
+problemDesc:"Find maximum depth (height) of binary tree. Depth is number of nodes on longest path from root to leaf.",
 signal:"'Max depth' → DFS post-order: 1+max(left,right)",
 oneliner:"Post-order DFS: depth = 1 + max(leftDepth, rightDepth). Base case null → 0.",
 steps:["if null: return 0","left=maxDepth(root.left); right=maxDepth(root.right)","return 1+Math.max(left,right)"],
@@ -917,6 +1103,8 @@ mistake:"Returning -1 for null instead of 0 — shifts all depths by 1.",
 code:`if(root==null) return 0;
 return 1+Math.max(maxDepth(root.left),maxDepth(root.right));`},
 {id:33,w:2,topic:"Binary Trees",name:"Diameter of Binary Tree",diff:"E",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(h)",
+problemDesc:"Diameter of tree = longest path between any two nodes. Path may or may not pass through root.",
 signal:"'Diameter = longest path through any node' → DFS tracking left+right height at each node",
 oneliner:"At each node: diameter candidate = leftHeight + rightHeight. Return max height upward.",
 steps:["int[] ans={0}","DFS returns height: if null→0","At node: ans[0]=max(ans[0],left+right)","return 1+max(left,right)"],
@@ -932,6 +1120,8 @@ private int dfs(TreeNode n,int[] ans){
   return 1+Math.max(l,r);
 }`},
 {id:34,w:2,topic:"Binary Trees",name:"Balanced Binary Tree",diff:"E",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(h)",
+problemDesc:"Balanced tree: for every node, |leftHeight - rightHeight| <= 1. Check if tree is balanced.",
 signal:"'Is tree height-balanced?' → DFS returning -1 for unbalanced, height otherwise",
 oneliner:"DFS returns height or -1 (unbalanced). If |left−right|>1 or either is −1: return -1.",
 steps:["If null: return 0","l=dfs(left); r=dfs(right); if either==-1 or |l-r|>1: return -1","return 1+max(l,r)"],
@@ -945,6 +1135,8 @@ private int dfs(TreeNode n){
   return 1+Math.max(l,r);
 }`},
 {id:35,w:2,topic:"Binary Trees",name:"Same Tree",diff:"E",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(min(n,m))",spaceComplexity:"O(min(h1,h2))",
+problemDesc:"Check if two binary trees are identical structurally and in value.",
 signal:"'Are two trees identical?' → recursive structural + value comparison",
 oneliner:"Both null → true. One null → false. Values differ → false. Else recurse both sides.",
 steps:["if p==null&&q==null: return true","if p==null||q==null||p.val!=q.val: return false","return isSameTree(p.left,q.left)&&isSameTree(p.right,q.right)"],
@@ -954,6 +1146,8 @@ code:`if(p==null&&q==null) return true;
 if(p==null||q==null||p.val!=q.val) return false;
 return isSameTree(p.left,q.left)&&isSameTree(p.right,q.right);`},
 {id:36,w:2,topic:"Binary Trees",name:"Subtree of Another Tree",diff:"E",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n*m)",spaceComplexity:"O(h)",
+problemDesc:"Check if subRoot is a subtree of root. Subtree means same structure and values in a contiguous part.",
 signal:"'Is subRoot a subtree of root?' → isSameTree at every node",
 oneliner:"At every node in root, check if isSameTree(node, subRoot). Short-circuit on match.",
 steps:["if root==null: return false","if isSameTree(root,subRoot): return true","return isSubtree(root.left,subRoot)||isSubtree(root.right,subRoot)"],
@@ -963,6 +1157,8 @@ code:`if(root==null) return false;
 if(isSameTree(root,subRoot)) return true;
 return isSubtree(root.left,subRoot)||isSubtree(root.right,subRoot);`},
 {id:37,w:2,topic:"Binary Trees",name:"LCA of Binary Tree",diff:"M",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(h)",
+problemDesc:"Lowest Common Ancestor (LCA) of two nodes p and q. LCA is lowest node with p and q in subtree.",
 signal:"'Lowest common ancestor' → if current node is p or q return it; LCA is where both sides return non-null",
 oneliner:"Post-order DFS. If root==p or q return root. LCA is where left and right are both non-null.",
 steps:["if null||root==p||root==q: return root","left=lca(root.left); right=lca(root.right)","if left&&right: return root (this is LCA)","return left!=null?left:right"],
@@ -974,6 +1170,8 @@ TreeNode right=lowestCommonAncestor(root.right,p,q);
 if(left!=null&&right!=null) return root;
 return left!=null?left:right;`},
 {id:38,w:2,topic:"Binary Trees",name:"Level Order Traversal",diff:"M",tag:"tree-bfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(w)",
+problemDesc:"Return levels of tree as list of lists. w = max width of tree.",
 signal:"'Level by level traversal' → BFS with queue, snapshot size at each level",
 oneliner:"BFS queue. Snapshot queue.size() at start of each level; process exactly that many nodes.",
 steps:["Queue with root; result list","While queue non-empty: size=queue.size()","For i=0..size: poll, add val to level list, add children","Add level list to result"],
@@ -993,6 +1191,8 @@ while(!q.isEmpty()){
 }
 return res;`},
 {id:39,w:2,topic:"Binary Trees",name:"Right Side View",diff:"M",tag:"tree-bfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(w)",
+problemDesc:"Return list of rightmost node from each level of tree (as if looking from the right).",
 signal:"'Right side view' → BFS, take last element of each level",
 oneliner:"Level-order BFS. The last node polled at each level is visible from the right.",
 steps:["BFS level order","At each level: record the last node's value","Return result list"],
@@ -1012,6 +1212,8 @@ while(!q.isEmpty()){
 }
 return res;`},
 {id:40,w:2,topic:"Binary Trees",name:"Validate BST",diff:"M",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(h)",
+problemDesc:"Validate if binary tree is a valid BST. Every left < node < every right (globally).",
 signal:"'Validate BST' → DFS passing (min,max) bounds down the tree",
 oneliner:"DFS with (min,max) bounds. At each node: val must be in (min,max). Pass updated bounds down.",
 steps:["dfs(root,Long.MIN_VALUE,Long.MAX_VALUE)","if val<=min||val>=max: return false","Recurse left with (min,val); right with (val,max)"],
@@ -1024,6 +1226,8 @@ private boolean dfs(TreeNode n,long min,long max){
   return dfs(n.left,min,n.val)&&dfs(n.right,n.val,max);
 }`},
 {id:41,w:2,topic:"Binary Trees",name:"Kth Smallest in BST",diff:"M",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(h)",
+problemDesc:"Find kth smallest value in BST. k >= 1, guaranteed k is valid.",
 signal:"'Kth smallest in BST' → in-order traversal gives sorted order",
 oneliner:"In-order traversal (left→root→right) of BST gives ascending order. Return kth element.",
 steps:["In-order DFS with counter","Decrement k on each visit","When k==0: record and return","Early exit once found"],
@@ -1039,6 +1243,8 @@ private void dfs(TreeNode n,int[] k,int[] ans){
   dfs(n.right,k,ans);
 }`},
 {id:42,w:2,topic:"Binary Trees",name:"Construct BT from Preorder+Inorder",diff:"M",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(n)",
+problemDesc:"Construct binary tree from preorder and inorder traversals. Elements are unique.",
 signal:"'Construct tree from traversals' → preorder[0] is root; find in inorder to split",
 oneliner:"preorder[0] is root. Find root in inorder → left/right subtree sizes → recurse.",
 steps:["root=new TreeNode(preorder[preIdx++])","Find root in inorder: rootIdx=map.get(root.val)","root.left=build(inStart,rootIdx-1); root.right=build(rootIdx+1,inEnd)","Return root"],
@@ -1057,6 +1263,8 @@ private TreeNode build(int[] pre,int l,int r,Map<Integer,Integer> map,int[] idx)
   return root;
 }`},
 {id:43,w:2,topic:"Binary Trees",name:"Serialize and Deserialize BT",diff:"H",tag:"tree-bfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(n)",
+problemDesc:"Serialize tree to string and deserialize back. Encoding must uniquely represent tree.",
 signal:"'Encode tree to string and back' → BFS with null markers",
 oneliner:"BFS serialize with 'N' for nulls. Deserialize replays BFS using token queue.",
 steps:["Serialize: BFS, append val or 'N' with comma separator","Deserialize: split tokens, BFS replay","Queue of parent nodes; assign left then right child from tokens"],
@@ -1075,6 +1283,8 @@ code:`public String serialize(TreeNode root){
   return sb.toString();
 }`},
 {id:44,w:2,topic:"Binary Trees",name:"Binary Tree Maximum Path Sum",diff:"H",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(h)",
+problemDesc:"Path sum from any node to any node (may start/end at any node). Return max sum.",
 signal:"'Max path sum any path' → DFS returning max gain; update global with left+right+node",
 oneliner:"At each node: gain=max(0,leftGain)+max(0,rightGain)+val. Update global max. Return val+max(L,R).",
 steps:["int[] maxSum={Integer.MIN_VALUE}","DFS: leftGain=max(0,dfs(left)); rightGain=max(0,dfs(right))","maxSum[0]=max(maxSum[0],leftGain+rightGain+val)","return val+max(leftGain,rightGain)"],
@@ -1090,6 +1300,8 @@ private int dfs(TreeNode n,int[] ans){
   return n.val+Math.max(l,r);
 }`},
 {id:45,w:2,topic:"Binary Trees",name:"Count Good Nodes in BT",diff:"M",tag:"tree-dfs",pattern:"Trees",
+timeComplexity:"O(n)",spaceComplexity:"O(h)",
+problemDesc:"Good node: value >= max on path from root to it. Count good nodes. Root is always good.",
 signal:"'Good nodes' → DFS passing max seen so far; count where node.val >= maxSoFar",
 oneliner:"DFS with maxSoFar. Node is good if val >= maxSoFar. Update max going down.",
 steps:["dfs(root, Integer.MIN_VALUE)","If node.val >= max: count++; update max","Recurse left and right with updated max"],
@@ -1104,6 +1316,8 @@ private int dfs(TreeNode n,int max){
 }`},
 
 {id:46,w:3,topic:"Graphs",name:"Number of Islands",diff:"M",tag:"graph-dfs",pattern:"DFS",
+timeComplexity:"O(m*n)",spaceComplexity:"O(m*n)",
+problemDesc:"Count connected components of '1's in grid. '0' is water, '1' is land. Components are 4-directional.",
 signal:"'Count connected components in grid' → DFS flood-fill marking visited",
 oneliner:"For each unvisited '1': count++, flood-fill via DFS converting '1'→'0'.",
 steps:["For each cell: if '1' → count++; dfs(r,c)","DFS: bounds/visited check; mark '0'; recurse 4 dirs"],
@@ -1119,6 +1333,8 @@ private void dfs(char[][] g,int r,int c){
   dfs(g,r+1,c); dfs(g,r-1,c); dfs(g,r,c+1); dfs(g,r,c-1);
 }`},
 {id:47,w:3,topic:"Graphs",name:"Clone Graph",diff:"M",tag:"graph-bfs",pattern:"BFS",
+timeComplexity:"O(n + e)",spaceComplexity:"O(n)",
+problemDesc:"Clone connected undirected graph. Return deep copy clone node pointing to clone neighbors.",
 signal:"'Clone graph' → HashMap<original,clone> + BFS/DFS",
 oneliner:"HashMap maps original→clone. BFS: for each neighbor, create clone if new, add to queue.",
 steps:["Map<Node,Node> clones","BFS from node; for each: create clone if absent","Connect clone.neighbors","Return clones.get(node)"],
@@ -1137,6 +1353,8 @@ while(!q.isEmpty()){
 }
 return map.get(node);`},
 {id:48,w:3,topic:"Graphs",name:"Pacific Atlantic Water Flow",diff:"M",tag:"graph-bfs",pattern:"BFS",
+timeComplexity:"O(m*n)",spaceComplexity:"O(m*n)",
+problemDesc:"Cells from which water flows to both Pacific and Atlantic oceans. Pacific: left/top edge. Atlantic: right/bottom edge.",
 signal:"'Cells reaching both oceans' → reverse BFS from each ocean border",
 oneliner:"BFS backward from Pacific border cells; again from Atlantic. Return intersection.",
 steps:["Init Pacific queue with top+left borders; Atlantic with bottom+right","BFS: add neighbors if height>=current (water can flow reverse)","Intersection of both reachable sets is the answer"],
@@ -1152,6 +1370,8 @@ List<List<Integer>> res=new ArrayList<>();
 for(int i=0;i<m;i++) for(int j=0;j<n;j++) if(pac[i][j]&&atl[i][j]) res.add(Arrays.asList(i,j));
 return res;`},
 {id:49,w:3,topic:"Graphs",name:"Course Schedule",diff:"M",tag:"topo-sort",pattern:"Graphs",
+timeComplexity:"O(n + e)",spaceComplexity:"O(n + e)",
+problemDesc:"Detect cycle in course prerequisites. Courses must complete in topological order. No cycle → possible.",
 signal:"'Detect cycle in directed graph / valid ordering' → Kahn's topological sort",
 oneliner:"Build indegree array. BFS from 0-indegree nodes. Cycle if processed < n.",
 steps:["Build adj list + indegree[]","Queue all nodes with indegree 0","Process: for each neighbor decrement indegree; if 0 add to queue","If processed==n: no cycle"],
@@ -1168,6 +1388,8 @@ while(!q.isEmpty()){ int u=q.poll(); count++;
   for(int v:adj.get(u)) if(--indeg[v]==0) q.offer(v); }
 return count==numCourses;`},
 {id:50,w:3,topic:"Graphs",name:"Number of Connected Components",diff:"M",tag:"union-find",pattern:"Graphs",
+timeComplexity:"O(n*α(n))",spaceComplexity:"O(n)",
+problemDesc:"Count connected components in undirected graph. n nodes, edges represent connections.",
 signal:"'Connected components' → Union-Find with path compression",
 oneliner:"Union-Find: each edge unites components. Count remaining distinct roots.",
 steps:["int[] parent=0..n-1; int components=n","For each edge: if find(a)!=find(b): union, components--","Return components"],
@@ -1179,6 +1401,8 @@ for(int[] e:edges){ int a=find(parent,e[0]),b=find(parent,e[1]); if(a!=b){ paren
 return comps[0];
 private int find(int[] p,int x){ if(p[x]!=x) p[x]=find(p,p[x]); return p[x]; }`},
 {id:51,w:3,topic:"Graphs",name:"Word Ladder",diff:"H",tag:"graph-bfs",pattern:"BFS",
+timeComplexity:"O(n*l*26)",spaceComplexity:"O(n*l)",
+problemDesc:"Transform beginWord to endWord via valid words. Each step changes one letter. Return min steps.",
 signal:"'Min transformations word to word' → BFS with 1-char change = 1 edge",
 oneliner:"BFS where each edge changes one character. Level = number of transformations.",
 steps:["BFS from beginWord; visited set","For each word: try all 26 chars at each position","If new word in wordSet: add to queue (if not visited)","Return level when endWord reached"],
@@ -1199,6 +1423,8 @@ while(!q.isEmpty()){
   } steps++; }
 return 0;`},
 {id:52,w:3,topic:"Heaps & Priority Queue",name:"Find Median from Data Stream",diff:"H",tag:"two-heaps",pattern:"Two Heaps",
+timeComplexity:"O(log n) per op",spaceComplexity:"O(n)",
+problemDesc:"Find median of data stream. Numbers added one by one. Return median after each addition.",
 signal:"'Dynamic median' → max-heap (lower half) + min-heap (upper half)",
 oneliner:"lo=max-heap, hi=min-heap. Balance sizes (|lo|−|hi|≤1). Median from top(s).",
 steps:["addNum: push to lo (negate for max-heap); rebalance: push lo.poll() to hi","If hi.size()>lo.size(): push hi.poll() to lo","findMedian: if equal→average of tops; else lo.peek()"],
@@ -1213,6 +1439,8 @@ public double findMedian(){
   return lo.size()>hi.size()?lo.peek():(lo.peek()+hi.peek())/2.0;
 }`},
 {id:53,w:3,topic:"Heaps & Priority Queue",name:"Task Scheduler",diff:"M",tag:"heap+greedy",pattern:"Top K Elements",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Schedule tasks with cooldown n. Same task needs gap of n intervals. Return min time to complete all.",
 signal:"'Min time to complete tasks with cooldown' → greedy: always pick most frequent available task",
 oneliner:"Max-heap of frequencies. Each cycle: pick up to (n+1) tasks, cooldown remaining time.",
 steps:["Count frequencies; max-heap","While heap non-empty: pick top min(n+1,heap.size()) tasks each cycle","Push back non-zero frequencies; add max(cycle_count,n+1) to time"],
@@ -1230,6 +1458,8 @@ while(!pq.isEmpty()){
 }
 return time;`},
 {id:54,w:3,topic:"Heaps & Priority Queue",name:"K Closest Points to Origin",diff:"M",tag:"heap",pattern:"Top K Elements",
+timeComplexity:"O(n log k)",spaceComplexity:"O(k)",
+problemDesc:"Find k closest points to origin (0,0). Distance = Euclidean. Return any valid k points.",
 signal:"'K closest points' → max-heap size K by distance",
 oneliner:"Max-heap of size K by distance². When size>K, evict farthest. Remaining are K closest.",
 steps:["Max-heap by dist²","For each point: offer; if size>k: poll","Return remaining k points"],
@@ -1239,6 +1469,8 @@ code:`PriorityQueue<int[]> pq=new PriorityQueue<>((a,b)->b[0]*b[0]+b[1]*b[1]-a[0
 for(int[] p:points){ pq.offer(p); if(pq.size()>k) pq.poll(); }
 return pq.toArray(new int[k][]);`},
 {id:55,w:3,topic:"1D Dynamic Programming",name:"Climbing Stairs",diff:"E",tag:"dp-1d",pattern:"Dynamic Programming",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Climb n stairs. Each time climb 1 or 2 steps. Return distinct ways to reach top.",
 signal:"'Count ways to reach n' → Fibonacci-style DP",
 oneliner:"dp[i]=dp[i-1]+dp[i-2]. Base: dp[1]=1,dp[2]=2. Fibonacci in disguise.",
 steps:["dp[1]=1,dp[2]=2","For i=3..n: dp[i]=dp[i-1]+dp[i-2]","Return dp[n]"],
@@ -1249,6 +1481,8 @@ int a=1,b=2;
 for(int i=3;i<=n;i++){ int c=a+b; a=b; b=c; }
 return b;`},
 {id:56,w:3,topic:"1D Dynamic Programming",name:"House Robber",diff:"M",tag:"dp-1d",pattern:"Dynamic Programming",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Rob houses along street. Can't rob two adjacent houses. Return max money.",
 signal:"'Max sum no two adjacent' → dp[i]=max(dp[i-2]+nums[i], dp[i-1])",
 oneliner:"At each house: rob it (prev-prev + current) or skip (prev). Take max.",
 steps:["prev2=0,prev1=0","For each num: curr=max(prev2+num,prev1)","prev2=prev1; prev1=curr","Return prev1"],
@@ -1258,6 +1492,8 @@ code:`int prev2=0,prev1=0;
 for(int num:nums){ int curr=Math.max(prev2+num,prev1); prev2=prev1; prev1=curr; }
 return prev1;`},
 {id:57,w:3,topic:"1D Dynamic Programming",name:"House Robber II",diff:"M",tag:"dp-1d",pattern:"Dynamic Programming",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Rob houses in circle (first connects to last). Can't rob adjacent. Return max money.",
 signal:"'Circular house robber' → run House Robber I on [0..n-2] and [1..n-1], take max",
 oneliner:"Circular constraint: first and last can't both be robbed. Solve two linear sub-problems.",
 steps:["rob(nums[0..n-2]); rob(nums[1..n-1])","return max of both (handle n==1 edge case)"],
@@ -1272,6 +1508,8 @@ private int rob(int[] nums,int l,int r){
   return prev1;
 }`},
 {id:58,w:3,topic:"1D Dynamic Programming",name:"Longest Palindromic Substring",diff:"M",tag:"dp-expand",pattern:"Dynamic Programming",
+timeComplexity:"O(n²)",spaceComplexity:"O(1)",
+problemDesc:"Find longest palindromic substring. Substring must be contiguous.",
 signal:"'Longest palindrome in string' → expand around center for each char",
 oneliner:"For each center (char and between chars): expand outward while chars match.",
 steps:["For each i: expand(i,i) odd; expand(i,i+1) even","Return longest found"],
@@ -1286,6 +1524,8 @@ private int[] expand(String s,int l,int r){
   return new int[]{l+1,r-l-1}; // start, length
 }`},
 {id:59,w:3,topic:"1D Dynamic Programming",name:"Palindromic Substrings",diff:"M",tag:"dp-expand",pattern:"Dynamic Programming",
+timeComplexity:"O(n²)",spaceComplexity:"O(1)",
+problemDesc:"Count all palindromic substrings (contiguous). Each character is a palindrome.",
 signal:"'Count palindromic substrings' → expand around each center",
 oneliner:"For each center (n odd + n-1 even centers): count palindromes expanding outward.",
 steps:["For each i: count+=expand(i,i)+expand(i,i+1)","expand: while chars match count++, expand out"],
@@ -1298,6 +1538,8 @@ private int expand(String s,int l,int r){
   int c=0; while(l>=0&&r<s.length()&&s.charAt(l--)==s.charAt(r++)) c++; return c;
 }`},
 {id:60,w:3,topic:"1D Dynamic Programming",name:"Decode Ways",diff:"M",tag:"dp-1d",pattern:"Dynamic Programming",
+timeComplexity:"O(n)",spaceComplexity:"O(n)",
+problemDesc:"Decode string of digits (1-26 map A-Z). Count ways to decode. '0' can't decode alone.",
 signal:"'Count decodings of digit string' → dp[i] = ways ending at i",
 oneliner:"dp[i] = dp[i-1] if valid single + dp[i-2] if valid two-digit. Handle '0' cases.",
 steps:["dp[0]=1,dp[1]= s[0]!='0'?1:0","For i=2..n: single digit (s[i-1]!='0'): dp[i]+=dp[i-1]","Two digit (10-26): dp[i]+=dp[i-2]","Return dp[n]"],
@@ -1311,6 +1553,8 @@ for(int i=2;i<=n;i++){
 }
 return dp[n];`},
 {id:61,w:3,topic:"1D Dynamic Programming",name:"Coin Change",diff:"M",tag:"dp-1d",pattern:"Dynamic Programming",
+timeComplexity:"O(n*m)",spaceComplexity:"O(n)",
+problemDesc:"Min coins to make amount. Unlimited supply. Return -1 if impossible.",
 signal:"'Min coins to make amount' → dp[i]=min coins for amount i, unbounded knapsack",
 oneliner:"dp[0]=0, dp[1..amount]=∞. For each amount i and coin c: dp[i]=min(dp[i],dp[i-c]+1).",
 steps:["dp[0]=0; dp[1..amount]=Integer.MAX_VALUE","For i=1..amount: for each coin c: if c<=i&&dp[i-c]!=MAX: dp[i]=min(dp[i],dp[i-c]+1)","Return dp[amount]==-MAX?-1:dp[amount]"],
@@ -1321,6 +1565,8 @@ dp[0]=0;
 for(int i=1;i<=amount;i++) for(int c:coins) if(c<=i) dp[i]=Math.min(dp[i],dp[i-c]+1);
 return dp[amount]>amount?-1:dp[amount];`},
 {id:62,w:3,topic:"1D Dynamic Programming",name:"Maximum Product Subarray",diff:"M",tag:"dp-1d",pattern:"Dynamic Programming",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Max product of contiguous subarray. Can have negative/zero nums.",
 signal:"'Max product subarray' → track both max and min (negatives flip sign)",
 oneliner:"Track maxProd and minProd at each position. Negative number flips max↔min.",
 steps:["maxP=minP=nums[0],res=nums[0]","For each num: if num<0: swap maxP,minP","maxP=max(num,maxP*num); minP=min(num,minP*num)","res=max(res,maxP)"],
@@ -1335,6 +1581,8 @@ for(int i=1;i<nums.length;i++){
 }
 return res;`},
 {id:63,w:3,topic:"1D Dynamic Programming",name:"Longest Increasing Subsequence",diff:"M",tag:"dp-1d",pattern:"Dynamic Programming",
+timeComplexity:"O(n log n)",spaceComplexity:"O(n)",
+problemDesc:"LIS: longest strictly increasing subsequence (not necessarily contiguous).",
 signal:"'LIS length' → patience sorting with binary search O(n log n)",
 oneliner:"Maintain 'tails' array: smallest tail for each LIS length. Binary search to place each num.",
 steps:["tails=[] (empty)","For each num: binary search for first tail >= num","If found: replace tails[idx]=num. Else: append","Return tails.length"],
@@ -1348,6 +1596,8 @@ for(int num:nums){
 }
 return tails.size();`},
 {id:64,w:3,topic:"2D Dynamic Programming",name:"Unique Paths",diff:"M",tag:"dp-2d",pattern:"Dynamic Programming",
+timeComplexity:"O(m*n)",spaceComplexity:"O(n)",
+problemDesc:"m×n grid, move right or down. Count unique paths from top-left to bottom-right.",
 signal:"'Count paths in grid' → dp[i][j]=dp[i-1][j]+dp[i][j-1]",
 oneliner:"dp[i][j] = paths from (0,0) to (i,j) = from above + from left.",
 steps:["Fill row 0 and col 0 with 1s (only one way)","For i,j>0: dp[i][j]=dp[i-1][j]+dp[i][j-1]","Return dp[m-1][n-1]"],
@@ -1357,6 +1607,8 @@ code:`int[] dp=new int[n]; Arrays.fill(dp,1);
 for(int i=1;i<m;i++) for(int j=1;j<n;j++) dp[j]+=dp[j-1];
 return dp[n-1];`},
 {id:65,w:3,topic:"2D Dynamic Programming",name:"Longest Common Subsequence",diff:"M",tag:"dp-2d",pattern:"Dynamic Programming",
+timeComplexity:"O(m*n)",spaceComplexity:"O(m*n)",
+problemDesc:"LCS of two strings. Longest common subsequence (not necessarily contiguous).",
 signal:"'LCS of two strings' → dp[i][j] = LCS of s1[0..i-1] and s2[0..j-1]",
 oneliner:"If chars match: dp[i][j]=dp[i-1][j-1]+1. Else: max(dp[i-1][j],dp[i][j-1]).",
 steps:["dp[m+1][n+1] all zeros","For i=1..m, j=1..n: if s1[i-1]==s2[j-1]: dp[i][j]=dp[i-1][j-1]+1","Else: dp[i][j]=max(dp[i-1][j],dp[i][j-1])","Return dp[m][n]"],
@@ -1370,6 +1622,8 @@ for(int i=1;i<=m;i++) for(int j=1;j<=n;j++){
 return dp[m][n];`},
 
 {id:66,w:3,topic:"2D Dynamic Programming",name:"Edit Distance",diff:"M",tag:"dp-2d",pattern:"Dynamic Programming",
+timeComplexity:"O(m*n)",spaceComplexity:"O(m*n)",
+problemDesc:"Min operations to transform word1 to word2. Ops: insert, delete, replace.",
 signal:"'Min operations to transform s to t' → dp[i][j] on prefixes",
 oneliner:"If chars match: dp[i][j]=dp[i-1][j-1]. Else: 1+min(replace,delete,insert).",
 steps:["dp[0][j]=j; dp[i][0]=i","If s[i-1]==t[j-1]: dp[i][j]=dp[i-1][j-1]","Else: dp[i][j]=1+min(dp[i-1][j-1],dp[i-1][j],dp[i][j-1])","Return dp[m][n]"],
@@ -1384,6 +1638,8 @@ for(int i=1;i<=m;i++) for(int j=1;j<=n;j++){
 }
 return dp[m][n];`},
 {id:67,w:3,topic:"Backtracking",name:"Combination Sum",diff:"M",tag:"backtrack",pattern:"Backtracking",
+timeComplexity:"O(n^(t/min))",spaceComplexity:"O(t/min)",
+problemDesc:"All unique combinations summing to target. Elements reusable, no duplicates in input.",
 signal:"'All combinations summing to target, reuse allowed' → backtrack with start index",
 oneliner:"Backtrack: add candidate, recurse (same index — reuse allowed), remove. Prune if sum>target.",
 steps:["backtrack(start, path, remaining)","For i=start..n: if candidates[i]>remaining: break (sorted)","path.add; backtrack(i,path,remaining-c); path.remove"],
@@ -1399,6 +1655,8 @@ private void backtrack(int[] c,int rem,int start,List<Integer> path,List<List<In
   }
 }`},
 {id:68,w:3,topic:"Backtracking",name:"Word Search",diff:"M",tag:"backtrack",pattern:"Backtracking",
+timeComplexity:"O(m*n*4^l)",spaceComplexity:"O(l)",
+problemDesc:"Find if word exists in 2D grid. Search from any cell, move 4-directional, no reuse.",
 signal:"'Find word in grid, no reuse' → DFS + in-place visited marking + restore on backtrack",
 oneliner:"DFS from each cell. Mark visited with '#'. Restore on backtrack.",
 steps:["For each (r,c): if dfs(r,c,0): return true","DFS: if idx==word.length: return true","Bounds/char/visited check; mark '#'; recurse 4 dirs; restore"],
@@ -1414,6 +1672,8 @@ private boolean dfs(char[][] b,String w,int r,int c,int i){
   b[r][c]=tmp; return res;
 }`},
 {id:69,w:3,topic:"Backtracking",name:"Subsets",diff:"M",tag:"backtrack",pattern:"Backtracking",
+timeComplexity:"O(2^n)",spaceComplexity:"O(n)",
+problemDesc:"All subsets of array. No duplicates in input.",
 signal:"'All subsets' → backtrack: at each step decide include or not",
 oneliner:"At each index: add current subset to result, then recurse adding each remaining element.",
 steps:["backtrack(start=0, path=[])","Add path copy to result","For i=start..n: path.add(nums[i]); recurse(i+1); path.remove"],
@@ -1428,6 +1688,8 @@ private void backtrack(int[] nums,int start,List<Integer> path,List<List<Integer
   }
 }`},
 {id:70,w:3,topic:"Backtracking",name:"Permutations",diff:"M",tag:"backtrack",pattern:"Backtracking",
+timeComplexity:"O(n!)",spaceComplexity:"O(n)",
+problemDesc:"All permutations of array. No duplicates in input.",
 signal:"'All permutations' → backtrack with boolean[] used array",
 oneliner:"Track which elements are used. Add to path; recurse; mark unused on return.",
 steps:["boolean[] used; backtrack(path=[])","If path.size()==n: add copy to result","For each i: if used[i] skip; else mark used, add, recurse, unmark"],
@@ -1444,6 +1706,8 @@ private void backtrack(int[] nums,boolean[] used,List<Integer> path,List<List<In
   }
 }`},
 {id:71,w:4,topic:"Greedy & Intervals",name:"Jump Game",diff:"M",tag:"greedy",pattern:"Greedy",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Can you reach last index? At index i, max jump length is nums[i].",
 signal:"'Can you reach end?' → greedy track max reachable index",
 oneliner:"Track maxReach. If i > maxReach → stuck. Update maxReach = max(maxReach, i+nums[i]).",
 steps:["maxReach=0","For i=0..n-1: if i>maxReach: return false","maxReach=max(maxReach,i+nums[i])","Return true"],
@@ -1456,6 +1720,8 @@ for(int i=0;i<nums.length;i++){
 }
 return true;`},
 {id:72,w:4,topic:"Greedy & Intervals",name:"Jump Game II",diff:"M",tag:"greedy",pattern:"Greedy",
+timeComplexity:"O(n)",spaceComplexity:"O(1)",
+problemDesc:"Min jumps to reach last index. At index i, max jump length is nums[i].",
 signal:"'Min jumps to reach end' → greedy BFS-level widening",
 oneliner:"Track current level end and farthest reach. Jump when i reaches level end.",
 steps:["jumps=0,curEnd=0,farthest=0","For i=0..n-2: farthest=max(farthest,i+nums[i])","If i==curEnd: jumps++; curEnd=farthest","Return jumps"],
@@ -1468,6 +1734,8 @@ for(int i=0;i<nums.length-1;i++){
 }
 return jumps;`},
 {id:73,w:4,topic:"Greedy & Intervals",name:"Merge Intervals",diff:"M",tag:"intervals",pattern:"Overlapping Intervals",
+timeComplexity:"O(n log n)",spaceComplexity:"O(1)",
+problemDesc:"Merge overlapping intervals. Return array of non-overlapping intervals.",
 signal:"'Merge overlapping intervals' → sort by start, merge when start <= prev end",
 oneliner:"Sort by start. For each interval: if overlaps last in result, extend; else append.",
 steps:["Sort by intervals[i][0]","Start result with intervals[0]","For each: if start<=result.last.end: extend. Else append","Return result"],
@@ -1482,6 +1750,8 @@ for(int[] i:intervals){
 }
 return res.toArray(new int[res.size()][]);`},
 {id:74,w:4,topic:"Hard Mixed",name:"Median of Two Sorted Arrays",diff:"H",tag:"binary-search",pattern:"Modified Binary Search",
+timeComplexity:"O(log(min(m,n)))",spaceComplexity:"O(1)",
+problemDesc:"Median of two sorted arrays of different sizes. O(log min(m,n)) solution.",
 signal:"'Median of two sorted arrays O(log min(m,n))' → binary search on partition of smaller array",
 oneliner:"Binary search partition on smaller array. Find split where left halves ≤ right halves.",
 steps:["Ensure nums1 is smaller array","Binary search on nums1: partition such that maxLeft<=minRight","If balanced: median from boundary elements","Adjust lo/hi based on which side violates"],
@@ -1534,18 +1804,16 @@ const WEEK_LABEL  = {1:'Week 1 — Arrays & Core', 2:'Week 2 — Trees & Graphs'
 // ═══════════════════════════════════════════════════════════
 function buildSidebar(){
   const nav = document.getElementById('sidebarNav');
-  const filt = getFiltered();
-  const filtIds = new Set(filt.map(p => p.id));
   const topics = [...new Set(P.map(p => p.topic))];
   let html = '';
   topics.forEach(topic => {
-    const tp = P.filter(p => p.topic === topic && filtIds.has(p.id));
+    const tp = P.filter(p => p.topic === topic);
     if(!tp.length) return;
     const done = tp.filter(p => solved[p.id]).length;
     const pct  = Math.round(done / tp.length * 100);
     html += `
     <div class="mb-1">
-      <button onclick="scrollToTopic('${topic.replace(/'/g,"\\'")}',this)"
+      <button onclick="scrollToTopic('${topic.replace(/'/g,"\\'")}',this); closeSidebar()"
         class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg
                hover:bg-surface-700 transition text-left group">
         <span class="text-slate-300 text-xs font-medium truncate group-hover:text-white">${topic}</span>
@@ -1570,6 +1838,42 @@ function buildSidebar(){
     </div>`;
   });
   nav.innerHTML = html || '<p class="text-slate-600 text-xs px-3">No matches</p>';
+}
+
+function buildMobileTopicsBar(){
+  const nav = document.getElementById('mobileTopicsNav');
+  if(!nav) return;
+  
+  const filt = getFiltered();
+  const filtIds = new Set(filt.map(p => p.id));
+  const topics = [...new Set(P.map(p => p.topic))];
+  let html = '';
+  
+  topics.forEach(topic => {
+    const tp = P.filter(p => p.topic === topic && filtIds.has(p.id));
+    if(!tp.length) return;
+    const done = tp.filter(p => solved[p.id]).length;
+    
+    html += `
+    <button class="mobile-topic-btn"
+            onclick="scrollToTopicMobile('${topic.replace(/'/g,"\\'")}');"
+            title="${topic}">
+      ${topic.replace(/^(.{12}).*/, '$1…')}
+    </button>`;
+  });
+  
+  nav.innerHTML = html;
+}
+
+function scrollToTopicMobile(topic){
+  // Find first card with this topic and scroll to it
+  const cards = document.querySelectorAll('[data-topic]');
+  for(let card of cards){
+    if(card.getAttribute('data-topic') === topic){
+      card.scrollIntoView({behavior:'smooth', block:'center'});
+      break;
+    }
+  }
 }
 
 function scrollToTopic(topic, btn){ /* noop — topics visible in grid */ }
@@ -2770,36 +3074,36 @@ function cardHTML(p){
   const leetUrl    = `https://leetcode.com/problems/${p.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'')}/`;
 
   return `
-<article id="card-${p.id}" data-id="${p.id}"
+<article id="card-${p.id}" data-id="${p.id}" data-topic="${p.topic}"
   class="bg-surface-800 rounded-2xl border ${isDone?'border-brand-500/50':'border-surface-600'}
          overflow-hidden transition-all hover:border-surface-500">
 
   <!-- Header -->
-  <div class="flex items-center gap-3 p-4 cursor-pointer hover:bg-surface-700 transition select-none"
+  <div class="desktop-card-header flex items-center gap-2.5 sm:gap-3 p-3 sm:p-4 lg:py-3 cursor-pointer hover:bg-surface-700 transition select-none"
        onclick="toggleCard(${p.id})">
 
-    <div class="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center font-bold text-sm
+    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl shrink-0 flex items-center justify-center font-bold text-sm
                 ${isDone ? 'bg-brand-500 text-white' : 'bg-surface-600 text-slate-400'}">
       ${isDone ? '✓' : p.id}
     </div>
 
-    <div class="flex-1 min-w-0">
-      <h2 class="font-bold text-white text-sm truncate">${hl(p.name, q)}</h2>
-      <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+    <div class="flex-1 min-w-0 lg:flex lg:items-center lg:gap-4">
+      <h2 class="font-bold text-white text-sm leading-snug truncate lg:w-64 xl:w-72 lg:shrink-0">${hl(p.name, q)}</h2>
+      <div class="desktop-card-meta flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
         <span class="text-xs px-2 py-0.5 rounded border ${DIFF_CLASS[p.diff]}">${DIFF_LABEL[p.diff]}</span>
         <span class="text-xs px-2 py-0.5 rounded bg-surface-700 text-slate-400 font-mono">${p.tag}</span>
         <span class="flex items-center gap-1 text-xs text-slate-500">
           <span class="w-1.5 h-1.5 rounded-full inline-block ${WEEK_DOT[p.w]}"></span>W${p.w}
         </span>
         ${p.pattern ? `<a href="${patternUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()"
-           class="pattern-link">↗ ${p.pattern}</a>` : ''}
+           class="pattern-link hidden sm:inline-flex">↗ ${p.pattern}</a>` : ''}
       </div>
     </div>
 
-    <div class="flex items-center gap-2 shrink-0">
+    <div class="flex items-center gap-1 sm:gap-2 shrink-0">
       <button onclick="event.stopPropagation(); toggleSolved(${p.id})"
         aria-label="Mark solved"
-        class="p-1.5 rounded-lg hover:bg-surface-600 transition
+        class="p-2 rounded-lg hover:bg-surface-600 transition
                ${isDone ? 'text-brand-400' : 'text-slate-600 hover:text-slate-400'}">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -2841,6 +3145,24 @@ function cardHTML(p){
       </div>
       <!-- Hidden solution (revealed on click) -->
       <div id="solution-${p.id}" class="hidden space-y-5">` : ''}
+
+      <!-- Problem Description -->
+      <div class="bg-surface-700 border border-surface-600 rounded-xl p-4 space-y-2">
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Problem</p>
+        <p class="text-sm text-slate-300 leading-relaxed">${p.problemDesc || 'Given input, return expected output following the pattern.'}</p>
+      </div>
+
+      <!-- Complexity -->
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div class="bg-surface-700 border border-surface-600 rounded-xl p-3">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Time</p>
+          <p class="text-sm font-mono text-brand-400">${p.timeComplexity || 'O(n)'}</p>
+        </div>
+        <div class="bg-surface-700 border border-surface-600 rounded-xl p-3">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Space</p>
+          <p class="text-sm font-mono text-brand-400">${p.spaceComplexity || 'O(1)'}</p>
+        </div>
+      </div>
 
       <!-- One-liner -->
       <div class="bg-brand-600/10 border border-brand-500/20 rounded-xl p-3 text-sm text-slate-200 leading-relaxed">
@@ -2997,6 +3319,7 @@ function buildAnalytics(){
 // ═══════════════════════════════════════════════════════════
 function render(){
   buildSidebar();
+  buildMobileTopicsBar();
   const filt = getFiltered();
   const grid = document.getElementById('problemGrid');
   const noRes = document.getElementById('noResults');
@@ -3038,6 +3361,10 @@ function render(){
 // ═══════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════
+document.addEventListener('keydown', event => {
+  if(event.key === 'Escape') closeSidebar();
+});
+
 try{
   loadSolved();
   render();
