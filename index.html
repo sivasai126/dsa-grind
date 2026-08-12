@@ -44,7 +44,7 @@
       #mobileTopicsBar {
         display: block;
         position: sticky;
-        top: 6.5rem;
+        top: 6rem;
         z-index: 39;
         background: rgba(15, 23, 42, 0.95);
         backdrop-filter: blur(4px);
@@ -85,7 +85,7 @@
       }
       
       #filterBar {
-        top: calc(6.5rem + 3.5rem);
+        top: calc(6rem + 3.5rem);
         z-index: 38;
       }
     }
@@ -111,7 +111,7 @@
     /* Adjust filter bar when mobile topics bar is shown */
     @media(min-width:1024px){
       #mobileTopicsBar { display:none !important; }
-      #filterBar { top:6.5rem; }
+      #filterBar { top:3.5rem; }
     }
 
     /* Desktop: the study list is a scanning surface, so avoid tall cards and a page-length sidebar. */
